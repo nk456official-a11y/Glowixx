@@ -54,7 +54,6 @@ export default function Home() {
 
   const current = videos[activeVideo];
   const isLiked = liked.includes(current.id);
-  const streakLabel = fireStyle === "lavender" ? "7 days" : fireStyle === "mint" ? "7 days" : "7 days";
   const sortedChats = useMemo(() => conversations, []);
   const activeChat = sortedChats[selectedChat];
 
@@ -74,7 +73,7 @@ export default function Home() {
       </aside>
 
       <main className="main-column">
-        <header className="topbar"><div className="mobile-brand"><span className="brand-spark">✦</span>glowix</div><div className="topbar-title">{view === "feed" ? "Для тебя" : view === "discover" ? "Обзор" : view === "chats" ? "Чаты" : "Профиль"}<span className="live-dot"/></div><div className="topbar-actions"><button className="icon-button"><Bell size={19}/><i/></button><div className="mobile-streak" onClick={() => setShowCustomize(true)}><Flame size={16} fill="currentColor"/> {streakLabel}</div></div></header>
+        <header className={`topbar ${view === "feed" ? "feed-topbar" : ""}`}><div className="mobile-brand"><span className="brand-spark">✦</span>glowix</div><div className="topbar-title">{view === "feed" ? "Для тебя" : view === "discover" ? "Обзор" : view === "chats" ? "Чаты" : "Профиль"}<span className="live-dot"/></div><div className="topbar-actions"><button className="icon-button"><Bell size={19}/><i/></button></div></header>
 
         {view === "feed" && <section className="feed-view"><div className="feed-intro"><div><p className="eyebrow">SATURDAY, 21 NOVEMBER</p><h1>Твоя лента<br/><em>горит мягко.</em></h1></div><button className="filter-pill"><Sparkles size={15}/> Для тебя <ChevronRight size={14}/></button></div><div className="video-card" data-accent={current.accent}><video key={current.id} className="feed-video" poster={current.poster} src={current.src} autoPlay muted loop playsInline/><div className="video-shade"/><div className="video-top"><div className="creator"><div className="avatar creator-avatar">{current.user.split(" ").map(x => x[0]).join("")}</div><div><strong>{current.user}</strong><span>{current.handle}</span></div><button className="follow-button">Подписаться</button></div><button className="more-button"><MoreHorizontal size={20}/></button></div><div className="video-info"><p>{current.caption}</p><span>{current.tags}</span></div><div className="video-actions"><button onClick={() => toggleLike(current.id)} className={isLiked ? "liked" : ""}><Heart size={22} fill={isLiked ? "currentColor" : "none"}/><small>{current.likes}</small></button><button><MessageCircle size={22}/><small>{current.comments}</small></button><button><Share2 size={21}/><small>share</small></button><button className="sound-pill"><span className="sound-bars"><i/><i/><i/></span> original</button></div><div className="video-progress"><span style={{ width: `${[54, 71, 38][activeVideo]}%` }}/></div></div><div className="feed-switcher"><button onClick={() => setActiveVideo((activeVideo + videos.length - 1) % videos.length)}><ChevronRight size={18} className="rotate-180"/></button><span>{String(activeVideo + 1).padStart(2,"0")} <i/> 03</span><button onClick={() => setActiveVideo((activeVideo + 1) % videos.length)}><ChevronRight size={18}/></button></div></section>}
 
@@ -87,7 +86,7 @@ export default function Home() {
 
       <nav className="mobile-nav">{navItems.map(item => { const Icon = item.icon; return <button key={item.id} className={view === item.id ? "active" : ""} onClick={() => setView(item.id as View)}><Icon size={20}/><span>{item.label}</span>{item.id === "chats" && <i/>}</button>; })}<button className="mobile-upload" onClick={() => setShowUpload(true)}><Plus size={22}/></button></nav>
 
-      {!loggedIn && <div className="login-banner"><div><span className="eyebrow">MAKE IT YOURS</span><strong>Зажги свой Glowix</strong></div><button onClick={() => setShowAuth(true)}>Войти / создать</button></div>}
+      {!loggedIn && <div className={`login-banner ${view === "feed" ? "feed-login-banner" : ""}`}><div><span className="eyebrow">MAKE IT YOURS</span><strong>Зажги свой Glowix</strong></div><button onClick={() => setShowAuth(true)}>Войти / создать</button></div>}
 
       {showAuth && <div className="modal-backdrop" onClick={() => setShowAuth(false)}><div className="modal auth-modal" onClick={e => e.stopPropagation()}><button className="modal-close" onClick={() => setShowAuth(false)}><X size={18}/></button><div className="modal-symbol"><Sparkles size={20}/></div><p className="eyebrow">WELCOME TO GLOWIX</p><h2>Твоё место,<br/><em>твой свет.</em></h2><p className="modal-subtitle">Создай аккаунт и сохраняй свои маленькие моменты в одном тёплом пространстве.</p><label>Email<input type="email" placeholder="you@example.com"/></label><label>Пароль<input type="password" placeholder="••••••••"/></label><button className="primary-button" onClick={() => { localStorage.setItem("glowix-auth", "1"); setLoggedIn(true); setShowAuth(false); }}>Продолжить <ChevronRight size={17}/></button><span className="terms">Продолжая, ты принимаешь правила Glowix</span></div></div>}
 
