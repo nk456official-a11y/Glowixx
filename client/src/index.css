@@ -14,3 +14,7 @@
 
 /* Minimal feed mode: the feed stage keeps only the video and creator identity visible. */
 .feed-topbar,.feed-login-banner,.feed-view .feed-intro,.feed-view .video-info,.feed-view .video-actions,.feed-view .video-progress,.feed-view .feed-switcher{display:none!important}
+
+/* Flat chat identity rows: no pill containers around names. */
+.chat-preview,.chat-preview:hover,.chat-preview.selected{border-radius:0;background:transparent}
+.conversation-streak{border:0;padding:0}
