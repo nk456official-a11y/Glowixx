@@ -18,3 +18,6 @@
 /* Flat chat identity rows: no pill containers around names. */
 .chat-preview,.chat-preview:hover,.chat-preview.selected{border-radius:0;background:transparent}
 .conversation-streak{border:0;padding:0}
+
+/* Violet actions for account entry and avatar customization. */
+.login-banner button,.avatar-plus{background:var(--lav)}
