@@ -21,3 +21,19 @@
 
 /* Violet actions for account entry and avatar customization. */
 .login-banner button,.avatar-plus{background:var(--lav)}
+
+/* Unified violet interaction language for every button state. */
+:root{--button-accent:#9d8cff;--button-accent-dark:#7665e6;--button-accent-soft:#9d8cff22;--button-accent-glow:#9d8cff55}
+button{transition:color .2s,background-color .2s,border-color .2s,box-shadow .2s,transform .2s}
+button:focus-visible{outline:2px solid var(--button-accent);outline-offset:3px}
+button:active{transform:translateY(1px)}
+.nav-item:hover,.nav-item.active{box-shadow:inset 0 0 0 1px var(--button-accent-soft)}
+.nav-item.active,.mobile-nav button.active{color:var(--button-accent)}
+.topic.active{background:var(--button-accent);border-color:var(--button-accent)}
+.profile-tabs button.active{border-bottom-color:var(--button-accent)}
+.primary-button,.send-button{background:var(--button-accent);box-shadow:0 8px 25px var(--button-accent-glow)}
+.primary-button:hover,.send-button:hover,.login-banner button:hover,.upload-rail:hover,.mobile-upload:hover{background:var(--button-accent-dark);box-shadow:0 10px 28px var(--button-accent-glow)}
+.login-banner button,.avatar-plus{background:var(--button-accent)}
+.icon-button:hover,.filter-pill:hover,.follow-button:hover,.outline-button:hover,.feed-switcher button:hover,.chat-back:hover,.message-compose>button:hover,.more-button:hover{color:var(--button-accent);border-color:var(--button-accent)}
+.style-options button.selected,.avatar-options button.selected{border-color:var(--button-accent);color:var(--button-accent);background:var(--button-accent-soft);box-shadow:0 0 0 3px var(--button-accent-soft)}
+.style-options button:nth-child(2).selected,.style-options button:nth-child(3).selected{border-color:var(--button-accent);color:var(--button-accent)}
