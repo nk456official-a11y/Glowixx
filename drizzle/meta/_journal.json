@@ -15,6 +15,13 @@
       "when": 1795333021435,
       "tag": "0001_classy_madame_hydra",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1795463604546,
+      "tag": "0002_curly_talon",
+      "breakpoints": true
     }
   ]
 }

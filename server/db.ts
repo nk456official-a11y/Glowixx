@@ -1,6 +1,7 @@
 import { and, asc, count, desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
+  commentLikes,
   comments,
   InsertComment,
   InsertPost,
@@ -202,14 +203,27 @@ export async function togglePostLike(postId: number, clientId: string): Promise<
   return { liked: true };
 }
 
-export async function listPostComments(postId: number) {
+export type PostComment = {
+  id: number;
+  postId: number;
+  parentId: number | null;
+  clientId: string;
+  authorName: string;
+  body: string;
+  createdAt: Date;
+  likes: number;
+  isLiked: boolean;
+};
+
+export async function listPostComments(postId: number, clientId?: string): Promise<PostComment[]> {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
 
-  return db
+  const rows = await db
     .select({
       id: comments.id,
       postId: comments.postId,
+      parentId: comments.parentId,
       clientId: comments.clientId,
       authorName: comments.authorName,
       body: comments.body,
@@ -218,16 +232,62 @@ export async function listPostComments(postId: number) {
     .from(comments)
     .where(eq(comments.postId, postId))
     .orderBy(asc(comments.createdAt));
+  const likedRows = clientId
+    ? await db.select({ commentId: commentLikes.commentId }).from(commentLikes).where(eq(commentLikes.clientId, clientId))
+    : [];
+  const likedIds = new Set(likedRows.map(row => row.commentId));
+
+  return Promise.all(rows.map(async comment => {
+    const [{ value: likeCount }] = await db
+      .select({ value: count() })
+      .from(commentLikes)
+      .where(eq(commentLikes.commentId, comment.id));
+    return {
+      ...comment,
+      likes: Number(likeCount ?? 0),
+      isLiked: likedIds.has(comment.id),
+    };
+  }));
 }
 
 export async function addPostComment(input: InsertComment) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
 
+  if (input.parentId) {
+    const parent = await db
+      .select({ postId: comments.postId })
+      .from(comments)
+      .where(eq(comments.id, input.parentId))
+      .limit(1);
+    if (parent.length === 0 || parent[0].postId !== input.postId) {
+      throw new Error("Comment reply target was not found");
+    }
+  }
+
   const result = await db.insert(comments).values(input);
   const insertedId = Number(result[0].insertId);
   const inserted = await db.select().from(comments).where(eq(comments.id, insertedId)).limit(1);
   return inserted[0];
+}
+
+export async function toggleCommentLike(commentId: number, clientId: string): Promise<{ liked: boolean }> {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+
+  const existing = await db
+    .select({ id: commentLikes.id })
+    .from(commentLikes)
+    .where(and(eq(commentLikes.commentId, commentId), eq(commentLikes.clientId, clientId)))
+    .limit(1);
+
+  if (existing.length > 0) {
+    await db.delete(commentLikes).where(eq(commentLikes.id, existing[0].id));
+    return { liked: false };
+  }
+
+  await db.insert(commentLikes).values({ commentId, clientId });
+  return { liked: true };
 }
 
 export async function createUploadedPost(input: InsertPost) {

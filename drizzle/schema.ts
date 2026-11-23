@@ -63,6 +63,7 @@ export const comments = mysqlTable(
   {
     id: int("id").autoincrement().primaryKey(),
     postId: int("postId").notNull(),
+    parentId: int("parentId"),
     clientId: varchar("clientId", { length: 96 }).notNull(),
     authorName: varchar("authorName", { length: 120 }).notNull().default("Sasha Volkova"),
     body: text("body").notNull(),
@@ -70,8 +71,25 @@ export const comments = mysqlTable(
   },
   table => ({
     postIndex: index("comments_post_idx").on(table.postId),
+    parentIndex: index("comments_parent_idx").on(table.parentId),
   }),
 );
 
 export type Comment = typeof comments.$inferSelect;
 export type InsertComment = typeof comments.$inferInsert;
+
+export const commentLikes = mysqlTable(
+  "comment_likes",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    commentId: int("commentId").notNull(),
+    clientId: varchar("clientId", { length: 96 }).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => ({
+    commentClientUnique: uniqueIndex("comment_likes_comment_client_unique").on(table.commentId, table.clientId),
+    commentIndex: index("comment_likes_comment_idx").on(table.commentId),
+  }),
+);
+
+export type CommentLike = typeof commentLikes.$inferSelect;
