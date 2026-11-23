@@ -7,6 +7,9 @@ import { publicPlatformScript } from "./publicConfig";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
+import { createUploadedPost } from "../db";
+import { storagePut } from "../storage";
+import { nanoid } from "nanoid";
 
 async function startServer() {
   const app = express();
@@ -18,6 +21,47 @@ async function startServer() {
   app.get("/api/platform/config.js", (_req, res) => {
     res.set("Cache-Control", "no-store").type("application/javascript").send(publicPlatformScript());
   });
+  app.post(
+    "/api/uploads/video",
+    express.raw({ type: ["video/*", "application/octet-stream"], limit: "110mb" }),
+    async (req, res) => {
+      try {
+        if (!Buffer.isBuffer(req.body) || req.body.length === 0) {
+          res.status(400).json({ error: "Выберите видеофайл для загрузки" });
+          return;
+        }
+        if (req.body.length > 100 * 1024 * 1024) {
+          res.status(413).json({ error: "Видео должно быть не больше 100 MB" });
+          return;
+        }
+
+        const rawFilename = req.header("x-glowix-filename") || "glowix-video.mp4";
+        const filename = decodeURIComponent(rawFilename).replace(/[^a-zA-Z0-9._-]/g, "_").slice(-120) || "glowix-video.mp4";
+        const contentType = req.header("content-type") || "video/mp4";
+        if (!contentType.startsWith("video/") && contentType !== "application/octet-stream") {
+          res.status(415).json({ error: "Поддерживаются только видеофайлы" });
+          return;
+        }
+
+        const stored = await storagePut(`videos/${Date.now()}-${filename}`, req.body, contentType);
+        const post = await createUploadedPost({
+          externalId: `upload-${nanoid(16)}`,
+          creatorName: "Sasha Volkova",
+          handle: "@sashavolkova",
+          caption: "Новый момент, которым хочется поделиться ✦",
+          tags: "#myglow  #newmoment",
+          accent: "violet",
+          posterUrl: null,
+          videoUrl: stored.url,
+        });
+
+        res.status(201).json({ post, url: stored.url });
+      } catch (error) {
+        console.error("[Video upload] Failed:", error);
+        res.status(500).json({ error: "Не удалось загрузить видео. Попробуйте ещё раз." });
+      }
+    },
+  );
   registerOAuthRoutes(app);
   // tRPC API
   app.use(
