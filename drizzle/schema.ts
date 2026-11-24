@@ -58,6 +58,22 @@ export const postLikes = mysqlTable(
 
 export type PostLike = typeof postLikes.$inferSelect;
 
+export const postReposts = mysqlTable(
+  "post_reposts",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    postId: int("postId").notNull(),
+    clientId: varchar("clientId", { length: 96 }).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => ({
+    postClientUnique: uniqueIndex("post_reposts_post_client_unique").on(table.postId, table.clientId),
+    postIndex: index("post_reposts_post_idx").on(table.postId),
+  }),
+);
+
+export type PostRepost = typeof postReposts.$inferSelect;
+
 export const comments = mysqlTable(
   "comments",
   {

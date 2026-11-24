@@ -7,6 +7,7 @@ import {
   InsertPost,
   InsertUser,
   postLikes,
+  postReposts,
   posts,
   users,
 } from "../drizzle/schema";
@@ -139,7 +140,9 @@ export type FeedPost = {
   src: string;
   likes: number;
   comments: number;
+  reposts: number;
   isLiked: boolean;
+  isReposted: boolean;
   createdAt: Date;
 };
 
@@ -153,6 +156,10 @@ export async function listFeedPosts(clientId?: string): Promise<FeedPost[]> {
     ? await db.select({ postId: postLikes.postId }).from(postLikes).where(eq(postLikes.clientId, clientId))
     : [];
   const likedIds = new Set(likedRows.map(row => row.postId));
+  const repostedRows = clientId
+    ? await db.select({ postId: postReposts.postId }).from(postReposts).where(eq(postReposts.clientId, clientId))
+    : [];
+  const repostedIds = new Set(repostedRows.map(row => row.postId));
 
   return Promise.all(
     rows.map(async post => {
@@ -164,6 +171,10 @@ export async function listFeedPosts(clientId?: string): Promise<FeedPost[]> {
         .select({ value: count() })
         .from(comments)
         .where(eq(comments.postId, post.id));
+      const [{ value: repostCount }] = await db
+        .select({ value: count() })
+        .from(postReposts)
+        .where(eq(postReposts.postId, post.id));
 
       return {
         id: post.id,
@@ -177,7 +188,9 @@ export async function listFeedPosts(clientId?: string): Promise<FeedPost[]> {
         src: post.videoUrl,
         likes: Number(likeCount ?? 0),
         comments: Number(commentCount ?? 0),
+        reposts: Number(repostCount ?? 0),
         isLiked: likedIds.has(post.id),
+        isReposted: repostedIds.has(post.id),
         createdAt: post.createdAt,
       };
     }),
@@ -201,6 +214,25 @@ export async function togglePostLike(postId: number, clientId: string): Promise<
 
   await db.insert(postLikes).values({ postId, clientId });
   return { liked: true };
+}
+
+export async function togglePostRepost(postId: number, clientId: string): Promise<{ reposted: boolean }> {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+
+  const existing = await db
+    .select({ id: postReposts.id })
+    .from(postReposts)
+    .where(and(eq(postReposts.postId, postId), eq(postReposts.clientId, clientId)))
+    .limit(1);
+
+  if (existing.length > 0) {
+    await db.delete(postReposts).where(eq(postReposts.id, existing[0].id));
+    return { reposted: false };
+  }
+
+  await db.insert(postReposts).values({ postId, clientId });
+  return { reposted: true };
 }
 
 export type PostComment = {

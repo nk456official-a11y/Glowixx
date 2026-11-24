@@ -15,6 +15,7 @@ import {
   Palette,
   Play,
   Plus,
+  Repeat2,
   Search,
   Send,
   Settings,
@@ -37,17 +38,19 @@ type FeedPost = {
   tags: string;
   likes: number;
   comments: number;
+  reposts: number;
   accent: string;
   poster: string | null;
   src: string;
   isLiked: boolean;
+  isReposted: boolean;
   createdAt: Date;
 };
 
 const fallbackVideos: FeedPost[] = [
-  { id: 1, externalId: "seed-mila-chen", user: "Mila Chen", handle: "@milachen", caption: "late light, soft focus, no plans ✦", tags: "#slowdays  #goldenhour", likes: 0, comments: 0, accent: "sunset", poster: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=85", src: "https://assets.mixkit.co/videos/preview/mixkit-woman-dancing-under-neon-lights-12339-large.mp4", isLiked: false, createdAt: new Date() },
-  { id: 2, externalId: "seed-noah-park", user: "Noah Park", handle: "@noahpark", caption: "Found a little bit of magic on my walk home.", tags: "#cityglow  #afterhours", likes: 0, comments: 0, accent: "blue", poster: "https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=900&q=85", src: "https://assets.mixkit.co/videos/preview/mixkit-city-traffic-at-night-11-large.mp4", isLiked: false, createdAt: new Date() },
-  { id: 3, externalId: "seed-lena-ortiz", user: "Lena Ortiz", handle: "@lena.o", caption: "A tiny reset between two very big days.", tags: "#rituals  #morningclub", likes: 0, comments: 0, accent: "mint", poster: "https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?auto=format&fit=crop&w=900&q=85", src: "https://assets.mixkit.co/videos/preview/mixkit-woman-doing-yoga-in-a-studio-39803-large.mp4", isLiked: false, createdAt: new Date() },
+  { id: 1, externalId: "seed-mila-chen", user: "Mila Chen", handle: "@milachen", caption: "late light, soft focus, no plans ✦", tags: "#slowdays  #goldenhour", likes: 0, comments: 0, reposts: 0, accent: "sunset", poster: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=85", src: "https://assets.mixkit.co/videos/preview/mixkit-woman-dancing-under-neon-lights-12339-large.mp4", isLiked: false, isReposted: false, createdAt: new Date() },
+  { id: 2, externalId: "seed-noah-park", user: "Noah Park", handle: "@noahpark", caption: "Found a little bit of magic on my walk home.", tags: "#cityglow  #afterhours", likes: 0, comments: 0, reposts: 0, accent: "blue", poster: "https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=900&q=85", src: "https://assets.mixkit.co/videos/preview/mixkit-city-traffic-at-night-11-large.mp4", isLiked: false, isReposted: false, createdAt: new Date() },
+  { id: 3, externalId: "seed-lena-ortiz", user: "Lena Ortiz", handle: "@lena.o", caption: "A tiny reset between two very big days.", tags: "#rituals  #morningclub", likes: 0, comments: 0, reposts: 0, accent: "mint", poster: "https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?auto=format&fit=crop&w=900&q=85", src: "https://assets.mixkit.co/videos/preview/mixkit-woman-doing-yoga-in-a-studio-39803-large.mp4", isLiked: false, isReposted: false, createdAt: new Date() },
 ];
 
 const conversations = [
@@ -122,6 +125,13 @@ export default function Home() {
     onSuccess: () => utils.posts.list.invalidate(),
     onError: () => toast.error("Не удалось сохранить лайк"),
   });
+  const repostMutation = trpc.posts.toggleRepost.useMutation({
+    onSuccess: async ({ reposted }) => {
+      await utils.posts.list.invalidate();
+      toast.success(reposted ? "Видео добавлено в репосты" : "Репост отменён");
+    },
+    onError: () => toast.error("Не удалось сохранить репост"),
+  });
   const addCommentMutation = trpc.posts.addComment.useMutation({
     onSuccess: async () => {
       setCommentText("");
@@ -175,22 +185,25 @@ export default function Home() {
     setCommentText(`@${authorName} `);
   };
 
-  const sharePost = async (postId: number) => {
-    const url = new URL(window.location.href);
-    url.hash = `post-${postId}`;
+  const shareVideo = async (post: FeedPost) => {
+    if (!navigator.share) {
+      toast.error("Этот браузер не поддерживает отправку видео");
+      return;
+    }
+
     try {
-      await navigator.clipboard.writeText(url.toString());
-      toast.success("Ссылка на пост скопирована");
-    } catch {
-      const helper = document.createElement("textarea");
-      helper.value = url.toString();
-      helper.style.position = "fixed";
-      helper.style.opacity = "0";
-      document.body.appendChild(helper);
-      helper.select();
-      document.execCommand("copy");
-      helper.remove();
-      toast.success("Ссылка на пост скопирована");
+      const response = await fetch(post.src);
+      if (!response.ok) throw new Error("Видео недоступно");
+      const blob = await response.blob();
+      const file = new File([blob], `glowix-video-${post.id}.mp4`, { type: blob.type || "video/mp4" });
+      if (navigator.canShare && !navigator.canShare({ files: [file] })) {
+        throw new Error("Этот браузер не поддерживает отправку видеофайла");
+      }
+      await navigator.share({ files: [file], title: post.caption, text: `Видео от ${post.user} в Glowix` });
+      toast.success("Видео готово к отправке");
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      toast.error(error instanceof Error ? error.message : "Не удалось подготовить видео");
     }
   };
 
@@ -256,7 +269,7 @@ export default function Home() {
                 <div className="video-shade"/>
                 <div className="video-top"><div className="creator"><div className="avatar creator-avatar">{post.user.split(" ").map(x => x[0]).join("")}</div><div><strong>{post.user}</strong><span>{post.handle}</span></div><button type="button" className={`follow-button ${isFollowing ? "following" : ""}`} onClick={() => setFollowing(current => isFollowing ? current.filter(handle => handle !== post.handle) : [...current, post.handle])}>{isFollowing ? "Подписка" : "Подписаться"}</button></div><button type="button" className="more-button" aria-label="Ещё" onClick={() => notify("Дополнительные действия появятся здесь")}><MoreHorizontal size={20}/></button></div>
                 <div className="video-info"><p>{post.caption}</p><span>{post.tags}</span></div>
-                <div className="video-actions"><button type="button" onClick={() => toggleLike(post.id)} className={post.isLiked ? "liked" : ""} aria-label="Поставить лайк"><Heart size={22} fill={post.isLiked ? "currentColor" : "none"}/><small>{post.likes}</small></button><button type="button" onClick={() => openComments(post.id)} aria-label="Открыть комментарии"><MessageCircle size={22}/><small>{post.comments}</small></button><button type="button" onClick={() => sharePost(post.id)} aria-label="Поделиться постом"><Share2 size={21}/><small>share</small></button><button type="button" className="sound-pill" onClick={() => setMutedPosts(current => ({ ...current, [post.id]: !isMuted }))}><span className="sound-bars"><i/><i/><i/></span>{isMuted ? "sound off" : "sound on"}</button></div>
+                <div className="video-actions"><button type="button" onClick={() => toggleLike(post.id)} className={post.isLiked ? "liked" : ""} aria-label="Поставить лайк"><Heart size={22} fill={post.isLiked ? "currentColor" : "none"}/><small>{post.likes}</small></button><button type="button" onClick={() => openComments(post.id)} aria-label="Открыть комментарии"><MessageCircle size={22}/><small>{post.comments}</small></button><button type="button" onClick={() => repostMutation.mutate({ postId: post.id, clientId })} className={post.isReposted ? "reposted" : ""} aria-label="Репостить видео"><Repeat2 size={21}/><small>{post.reposts}</small></button><button type="button" onClick={() => void shareVideo(post)} aria-label="Отправить видео"><Share2 size={21}/><small>send video</small></button><button type="button" className="sound-pill" onClick={() => setMutedPosts(current => ({ ...current, [post.id]: !isMuted }))}><span className="sound-bars"><i/><i/><i/></span>{isMuted ? "sound off" : "sound on"}</button></div>
                 <div className="video-progress"><span style={{ width: `${[54, 71, 38][index % 3]}%` }}/></div>
               </div>
             </article>;
