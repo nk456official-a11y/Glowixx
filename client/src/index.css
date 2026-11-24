@@ -128,3 +128,13 @@ button:active{transform:translateY(1px)}
   .post-action-bar{width:calc(100% - 34px)}
   .post-action-button{width:100%;min-width:0}
 }
+
+
+/* Clean floating video controls: icons stay visible without confusing rectangular tiles. */
+.video-actions button:not(.sound-pill){width:auto;height:auto;min-width:34px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;backdrop-filter:none}
+.video-actions button:not(.sound-pill):hover{background:transparent;box-shadow:none;transform:translateY(-3px) scale(1.08)}
+.video-actions button:not(.sound-pill):active{background:transparent;box-shadow:none}
+.video-actions .sound-pill{padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;backdrop-filter:none}
+.video-actions .sound-pill:hover{background:transparent;box-shadow:none;transform:translateY(-2px)}
+.video-actions .save-video-button.saved{color:var(--button-accent)!important;filter:drop-shadow(0 0 7px var(--button-accent-glow))}
+.profile-tabs{flex-wrap:wrap}

@@ -2,7 +2,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
-import { addPostComment, listFeedPosts, listPostComments, toggleCommentLike, togglePostLike, togglePostRepost } from "./db";
+import { addPostComment, listFeedPosts, listPostComments, listSavedPosts, toggleCommentLike, togglePostLike, togglePostRepost, togglePostSave } from "./db";
 import { z } from "zod";
 
 const clientIdSchema = z.string().trim().min(8).max(96);
@@ -29,6 +29,12 @@ export const appRouter = router({
     toggleRepost: publicProcedure
       .input(z.object({ postId: postIdSchema, clientId: clientIdSchema }))
       .mutation(({ input }) => togglePostRepost(input.postId, input.clientId)),
+    toggleSave: publicProcedure
+      .input(z.object({ postId: postIdSchema, clientId: clientIdSchema }))
+      .mutation(({ input }) => togglePostSave(input.postId, input.clientId)),
+    saved: publicProcedure
+      .input(z.object({ clientId: clientIdSchema }))
+      .query(({ input }) => listSavedPosts(input.clientId)),
     comments: publicProcedure
       .input(z.object({ postId: postIdSchema, clientId: clientIdSchema.optional() }))
       .query(({ input }) => listPostComments(input.postId, input.clientId)),

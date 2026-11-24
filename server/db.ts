@@ -8,6 +8,7 @@ import {
   InsertUser,
   postLikes,
   postReposts,
+  postSaves,
   posts,
   users,
 } from "../drizzle/schema";
@@ -143,6 +144,7 @@ export type FeedPost = {
   reposts: number;
   isLiked: boolean;
   isReposted: boolean;
+  isSaved: boolean;
   createdAt: Date;
 };
 
@@ -160,6 +162,10 @@ export async function listFeedPosts(clientId?: string): Promise<FeedPost[]> {
     ? await db.select({ postId: postReposts.postId }).from(postReposts).where(eq(postReposts.clientId, clientId))
     : [];
   const repostedIds = new Set(repostedRows.map(row => row.postId));
+  const savedRows = clientId
+    ? await db.select({ postId: postSaves.postId }).from(postSaves).where(eq(postSaves.clientId, clientId))
+    : [];
+  const savedIds = new Set(savedRows.map(row => row.postId));
 
   return Promise.all(
     rows.map(async post => {
@@ -191,6 +197,7 @@ export async function listFeedPosts(clientId?: string): Promise<FeedPost[]> {
         reposts: Number(repostCount ?? 0),
         isLiked: likedIds.has(post.id),
         isReposted: repostedIds.has(post.id),
+        isSaved: savedIds.has(post.id),
         createdAt: post.createdAt,
       };
     }),
@@ -233,6 +240,30 @@ export async function togglePostRepost(postId: number, clientId: string): Promis
 
   await db.insert(postReposts).values({ postId, clientId });
   return { reposted: true };
+}
+
+export async function togglePostSave(postId: number, clientId: string): Promise<{ saved: boolean }> {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+
+  const existing = await db
+    .select({ id: postSaves.id })
+    .from(postSaves)
+    .where(and(eq(postSaves.postId, postId), eq(postSaves.clientId, clientId)))
+    .limit(1);
+
+  if (existing.length > 0) {
+    await db.delete(postSaves).where(eq(postSaves.id, existing[0].id));
+    return { saved: false };
+  }
+
+  await db.insert(postSaves).values({ postId, clientId });
+  return { saved: true };
+}
+
+export async function listSavedPosts(clientId: string): Promise<FeedPost[]> {
+  const posts = await listFeedPosts(clientId);
+  return posts.filter(post => post.isSaved);
 }
 
 export type PostComment = {
