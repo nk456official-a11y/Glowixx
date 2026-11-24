@@ -106,3 +106,25 @@ button:active{transform:translateY(1px)}
 
 .video-actions button.reposted{color:var(--button-accent)!important}
 .video-actions button.reposted svg{filter:drop-shadow(0 0 6px var(--button-accent-glow))}
+
+
+/* Dimensional feed controls and the repost action below each video. */
+.feed-item{align-content:center;gap:11px}
+.feed-item .video-card{height:min(calc(100vh - 125px),720px);min-height:520px}
+.video-actions button:not(.sound-pill){width:47px;height:47px;border:1px solid #ffffff2b;border-radius:16px;background:linear-gradient(145deg,#453b58cc,#17131fdd);box-shadow:inset 0 1px 0 #ffffff2e,0 9px 20px #0007;backdrop-filter:blur(12px);transition:transform .2s,box-shadow .2s,background .2s}
+.video-actions button:not(.sound-pill):hover{transform:translateY(-3px) scale(1.04);background:linear-gradient(145deg,#66588b,#21192f);box-shadow:inset 0 1px 0 #ffffff45,0 13px 25px #0009}
+.video-actions button.liked{color:var(--button-accent)}
+.video-actions .sound-pill{border-color:#ffffff35;background:linear-gradient(145deg,#403651dd,#15121ddd);box-shadow:inset 0 1px 0 #ffffff28,0 9px 20px #0007}
+.post-action-bar{width:min(100%,760px);display:flex;justify-content:center}
+.post-action-button{display:flex;align-items:center;justify-content:center;gap:9px;min-width:190px;padding:11px 17px;border:1px solid #ffffff24;border-radius:16px;background:linear-gradient(135deg,#302744,#17131f);box-shadow:inset 0 1px 0 #ffffff2b,0 12px 28px #0008;color:#e9e2f5;font-size:11px;font-weight:700;backdrop-filter:blur(12px)}
+.post-action-button span{flex:1;text-align:left}
+.post-action-button b{min-width:23px;height:23px;padding:0 6px;border-radius:9px;display:grid;place-items:center;background:#ffffff12;color:#bfb1ff;font-size:10px}
+.post-action-button:hover{transform:translateY(-3px);border-color:var(--button-accent);background:linear-gradient(135deg,#514477,#20182f);box-shadow:inset 0 1px 0 #ffffff40,0 15px 32px var(--button-accent-glow)}
+.post-action-button.reposted{border-color:var(--button-accent);color:#fff;background:linear-gradient(135deg,#7565db,#36265e);box-shadow:inset 0 1px 0 #ffffff55,0 14px 34px var(--button-accent-glow)}
+.post-action-button.reposted b{background:#ffffff25;color:#fff}
+@media(max-width:800px){
+  .feed-item{gap:9px;padding:10px 0 14px}
+  .feed-item .video-card{height:calc(100svh - 144px);min-height:0}
+  .post-action-bar{width:calc(100% - 34px)}
+  .post-action-button{width:100%;min-width:0}
+}
