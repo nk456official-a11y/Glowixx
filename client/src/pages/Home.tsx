@@ -65,7 +65,6 @@ const avatarOptions = [
 
 const navItems = [
   { id: "feed", label: "Лента", icon: HomeIcon },
-  { id: "discover", label: "Обзор", icon: Search },
   { id: "chats", label: "Чаты", icon: MessageCircle },
   { id: "profile", label: "Профиль", icon: UserRound },
 ];
@@ -247,7 +246,7 @@ export default function Home() {
       <main className="main-column">
         <header className={`topbar ${view === "feed" ? "feed-topbar" : ""}`}><div className="mobile-brand"><span className="brand-spark">✦</span>glowix</div><div className="topbar-title">{view === "feed" ? "Для тебя" : view === "discover" ? "Обзор" : view === "chats" ? "Чаты" : "Профиль"}<span className="live-dot"/></div><div className="topbar-actions"><button type="button" className="icon-button" aria-label="Уведомления" onClick={() => notify("Уведомления будут здесь") }><Bell size={19}/><i/></button></div></header>
 
-        {view === "feed" && <section className="feed-view" aria-label="Лента Glowix"><div className="feed-stream">
+        {view === "feed" && <section className="feed-view" aria-label="Лента Glowix"><button type="button" className="feed-search-button" onClick={() => setView("discover")} aria-label="Открыть поиск"><Search size={19}/></button><div className="feed-stream">
           {feedPosts.map((post, index) => {
             const isMuted = mutedPosts[post.id] ?? true;
             const isFollowing = currentFollowing(post.handle);
