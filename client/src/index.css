@@ -138,3 +138,18 @@ button:active{transform:translateY(1px)}
 .video-actions .sound-pill:hover{background:transparent;box-shadow:none;transform:translateY(-2px)}
 .video-actions .save-video-button.saved{color:var(--button-accent)!important;filter:drop-shadow(0 0 7px var(--button-accent-glow))}
 .profile-tabs{flex-wrap:wrap}
+
+
+/* Requested interaction colors and profile tab hierarchy. */
+:root{--save-accent:#ffd45a;--like-accent:#ff5368}
+.video-actions button.liked{color:var(--like-accent)!important}
+.video-actions button.liked svg{filter:drop-shadow(0 0 7px #ff536888)}
+.video-actions .save-video-button.saved{color:var(--save-accent)!important;filter:drop-shadow(0 0 8px #ffd45a99)}
+.video-actions .comment-button svg{fill:#fff;stroke:#fff}
+.post-action-button{background:linear-gradient(135deg,#ffffff1c,#ffffff08);border-color:#ffffff38;box-shadow:inset 0 1px 0 #ffffff3d,0 12px 28px #0006;backdrop-filter:blur(18px) saturate(130%)}
+.post-action-button:hover{background:linear-gradient(135deg,#ffffff2a,#ffffff10);border-color:#ffffff66;box-shadow:inset 0 1px 0 #ffffff55,0 15px 32px #0008}
+.post-action-button.reposted{background:linear-gradient(135deg,#ffffff2b,#ffffff0d);border-color:#c7bcff99;color:#fff;box-shadow:inset 0 1px 0 #ffffff55,0 14px 34px #9d8cff33}
+.post-action-button.reposted b{background:#ffffff22}
+.profile-tabs{justify-content:center;gap:38px}
+.profile-tabs button{font-size:13px;font-weight:700;letter-spacing:-.01em;padding:0 2px 12px}
+@media(max-width:800px){.profile-tabs{gap:24px}.profile-tabs button{font-size:12px}}
