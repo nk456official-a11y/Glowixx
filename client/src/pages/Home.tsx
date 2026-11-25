@@ -24,6 +24,7 @@ import {
   Sparkles,
   Upload,
   UserRound,
+  UsersRound,
   X,
   Zap,
 } from "lucide-react";
@@ -70,11 +71,12 @@ const avatarOptions = [
 
 const navItems = [
   { id: "feed", label: "Лента", icon: HomeIcon },
+  { id: "friends", label: "Друзья", icon: UsersRound },
   { id: "chats", label: "Чаты", icon: MessageCircle },
   { id: "profile", label: "Профиль", icon: UserRound },
 ];
 
-type View = "feed" | "discover" | "chats" | "profile";
+type View = "feed" | "friends" | "discover" | "chats" | "profile";
 
 type ProfileTab = "videos" | "saved" | "reposts";
 
@@ -159,6 +161,7 @@ export default function Home() {
   const sortedChats = useMemo(() => conversations, []);
   const activeChat = sortedChats[selectedChat];
   const repostedProfilePosts = feedPosts.filter(post => post.isReposted);
+  const visibleFeedPosts = view === "friends" ? feedPosts.filter(post => following.includes(post.handle)) : feedPosts;
 
   const setActiveView = (nextView: View) => setView(nextView);
 
@@ -268,10 +271,10 @@ export default function Home() {
       </aside>
 
       <main className="main-column">
-        <header className={`topbar ${view === "feed" ? "feed-topbar" : ""}`}><div className="mobile-brand"><span className="brand-spark">✦</span>glowix</div><div className="topbar-title">{view === "feed" ? "Для тебя" : view === "discover" ? "Обзор" : view === "chats" ? "Чаты" : "Профиль"}<span className="live-dot"/></div><div className="topbar-actions"><button type="button" className="icon-button" aria-label="Уведомления" onClick={() => notify("Уведомления будут здесь") }><Bell size={19}/><i/></button></div></header>
+        <header className={`topbar ${view === "feed" ? "feed-topbar" : ""}`}><div className="mobile-brand"><span className="brand-spark">✦</span>glowix</div><div className="topbar-title">{view === "feed" ? "Для тебя" : view === "friends" ? "Друзья" : view === "discover" ? "Обзор" : view === "chats" ? "Чаты" : "Профиль"}<span className="live-dot"/></div><div className="topbar-actions"><button type="button" className="icon-button" aria-label="Уведомления" onClick={() => notify("Уведомления будут здесь") }><Bell size={19}/><i/></button></div></header>
 
-        {view === "feed" && <section className="feed-view" aria-label="Лента Glowix"><button type="button" className="feed-search-button" onClick={() => setView("discover")} aria-label="Открыть поиск"><Search size={19}/></button><div className="feed-stream">
-          {feedPosts.map((post, index) => {
+        {(view === "feed" || view === "friends") && <section className="feed-view" aria-label="Лента Glowix"><button type="button" className="feed-search-button" onClick={() => setView("discover")} aria-label="Открыть поиск"><Search size={19}/></button><div className="feed-stream">
+          {visibleFeedPosts.length ? visibleFeedPosts.map((post, index) => {
             const isMuted = mutedPosts[post.id] ?? true;
             const isFollowing = currentFollowing(post.handle);
             return <article className="feed-item" id={`post-${post.id}`} key={post.id}>
@@ -284,7 +287,7 @@ export default function Home() {
                 <div className="video-progress"><span style={{ width: `${[54, 71, 38][index % 3]}%` }}/></div>
               </div><div className="post-action-bar"><button type="button" className={`post-action-button repost-button ${post.isReposted ? "reposted" : ""}`} onClick={() => repostMutation.mutate({ postId: post.id, clientId })} aria-label="Репостить видео"><Repeat2 size={18}/><span>{post.isReposted ? "Репост опубликован" : "Репостить видео"}</span><b>{post.reposts}</b></button></div>
             </article>;
-          })}
+          }) : <div className="empty-state friends-empty"><UsersRound size={22}/><strong>Лента друзей пока пуста</strong><span>Подпишись на авторов в общей ленте — их видео появятся здесь.</span></div>}
         </div></section>}
 
         {view === "discover" && <section className="discover-view"><div className="section-heading"><div><p className="eyebrow">FIND YOUR GLOW</p><h1>Обзор</h1></div><button type="button" className="icon-button" onClick={() => notify("Поиск по Glowix скоро будет доступен")} aria-label="Поиск"><Search size={19}/></button></div><div className="topic-row"><button type="button" className="topic active" onClick={() => notify("Показываем все моменты")}>Все</button><button type="button" className="topic" onClick={() => notify("Фильтр #cityglow")}>#cityglow</button><button type="button" className="topic" onClick={() => notify("Фильтр #slowdays")}>#slowdays</button><button type="button" className="topic" onClick={() => notify("Фильтр #outfitcheck")}>#outfitcheck</button></div><div className="discover-grid">{[...feedPosts, ...feedPosts].map((post, i) => <button type="button" className="discover-tile" key={`${post.id}-${i}`} onClick={() => scrollToPost(post.id)}><img src={post.poster ?? undefined} alt=""/><span className="tile-gradient"/><span className="tile-meta"><Play size={13} fill="white"/> {post.likes}</span></button>)}</div></section>}
