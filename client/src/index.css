@@ -166,3 +166,10 @@ button:active{transform:translateY(1px)}
 .mobile-upload:active{transform:translateX(-50%) translateY(1px)}
 .friends-empty{width:min(100%,520px);min-height:260px;margin:30px auto;padding:30px}
 @media(max-width:800px){.profile-tabs button.active{padding:8px 11px}.mobile-nav{justify-content:space-around}.mobile-upload{left:50%}}
+
+
+/* Consistent pressed state and evenly spaced profile tabs. */
+button:active{background:#fff!important;color:#0a090d!important;border-color:#fff!important;box-shadow:0 6px 18px #0008!important}
+.profile-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;width:min(100%,560px);margin:0 auto 18px;align-items:stretch}
+.profile-tabs button,.profile-tabs button.active{width:100%;padding:10px 8px;text-align:center;white-space:nowrap}
+@media(max-width:800px){.profile-tabs{gap:8px}.profile-tabs button,.profile-tabs button.active{font-size:11px;padding:9px 4px}}
